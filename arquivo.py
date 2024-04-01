@@ -178,7 +178,7 @@ def CreateEmpresas(info: Empresa):
 
 
 
-@app.put('/UpdateVagas')
+@app.put('/UpdateVagas/{cdVaga}')
 def UpdateVagas(cdVaga: int, info: Vaga):
     conn = sqlite3.connect('Vaga.db')
     cursor = conn.cursor()
@@ -187,7 +187,7 @@ def UpdateVagas(cdVaga: int, info: Vaga):
     existe_pedido = cursor.fetchone()
     
     if not existe_pedido:
-        raise fastapi.HTTPException(status_code=404, detail='A vaga não existe')
+        raise fastapi.HTTPException(status_code=404, detail='Vaga não encontrada')
     
     dataconvertida = date_parser.parse(info.dataCadastro)
 
@@ -195,14 +195,14 @@ def UpdateVagas(cdVaga: int, info: Vaga):
                    UPDATE Vaga
                    SET CdVaga = ?, CdStatus = ?, DataCadastro = ?, UfVaga = ?, Salario = ? 
                    WHERE CdVaga = ?
-                   """, (int(info.cdVaga), int(info.cdStatus), str(dataconvertida), str(info.ufVaga), float(info.salario), cdVaga))
+                   """, (info.cdVaga, info.cdStatus, info.dataconvertida, info.ufVaga, info.salario, cdVaga))
 
     conn.commit()
     cursor.close()
     return {'Mensagem': 'Vaga atualizada com sucesso'}
 
 
-@app.put('/UpdateClientes')
+@app.put('/UpdateClientes/{cdCliente}')
 def UpdateClientes(cdCliente: int, info: Cliente):
     conn = sqlite3.connect('Vaga.db')
     cursor = conn.cursor()
@@ -211,7 +211,7 @@ def UpdateClientes(cdCliente: int, info: Cliente):
     existe_cliente = cursor.fetchone()
     
     if not existe_cliente:
-        raise fastapi.HTTPException(status_code=404, detail='A vaga não existe')
+        raise fastapi.HTTPException(status_code=404, detail='Cliente não encontrado')
     
     dataconvertida = date_parser.parse(info.dataCadastro)
 
@@ -219,14 +219,14 @@ def UpdateClientes(cdCliente: int, info: Cliente):
                    UPDATE Cliente
                    SET CdCliente = ?, CdStatus = ?, Nome = ?, Telefone = ?, Cpf = ?, Endereco = ?, Email = ?, DataCadastro = ?
                    WHERE CdCliente = ?
-                   """, (int(info.cdCliente), int(info.cdStatus), str(info.nome), str(info.telefone), str(info.cpf), str(info.endereco), str(info.email), str(dataconvertida), cdCliente))
+                   """, (info.cdCliente, info.cdStatus, info.nome, info.telefone, info.cpf, info.endereco, info.email, (dataconvertida, cdCliente))
 
     conn.commit()
     cursor.close()
     return {'Mensagem': 'Cliente atualizado com sucesso'}    
 
 
-@app.put('/UpdateEmpresas')
+@app.put('/UpdateEmpresas/{cdEmpresa}')
 def UpdateEmpresas(cdEmpresa: int, info: Empresa):
     conn = sqlite3.connect('Vaga.db')
     cursor = conn.cursor()
@@ -235,7 +235,7 @@ def UpdateEmpresas(cdEmpresa: int, info: Empresa):
     existe_empresa = cursor.fetchone()
     
     if not existe_empresa:
-        raise fastapi.HTTPException(status_code=404, detail='Empresa não cadastrada')
+        raise fastapi.HTTPException(status_code=404, detail='Empresa não encontrada')
     
     dataconvertida = date_parser.parse(info.dataCadastro)
 
@@ -243,7 +243,7 @@ def UpdateEmpresas(cdEmpresa: int, info: Empresa):
                    UPDATE Empresa
                    SET CdEmpresa = ?, CdStatus = ?, Nome = ?, Endereco = ?, Telefone = ?, Cnpj = ?, DataCadastro = ?
                    WHERE CdEmpresa = ?
-                   """, (int(info.cdEmpresa), int(info.cdStatus), str(info.nome), str(info.endereco), str(info.telefone), str(info.cnpj), str(dataconvertida), cdEmpresa))
+                   """, (info.cdEmpresa, info.cdStatus, info.nome, info.endereco, info.telefone, info.cnpj, (dataconvertida, cdEmpresa))
 
     conn.commit()
     cursor.close()
@@ -256,7 +256,7 @@ def DeleteVagas(cdVaga: int):
     cursor = conn.cursor()
     try:
         cursor.execute("SELETC * FROM Vaga WHERE CdVaga = ?", str(cdVaga))
-        cursor.execute("DELETE * FROM Vaga WHERE CdVaga = {0}".format(cdVaga))
+        cursor.execute("DELETE FROM Vaga WHERE CdVaga = {}".format(cdVaga))
 
     except:
         return {'Ocorreu um erro': cdVaga}
@@ -264,7 +264,7 @@ def DeleteVagas(cdVaga: int):
         conn.commit()
 
     cursor.close()    
-    return {'Mensagem': 'Sucesso'}
+    return {'Mensagem': 'Vaga deletada com sucesso'}
 
 
 @app.delete('/DeleteClientes/{cdCliente}')
@@ -273,7 +273,7 @@ def DeleteClientes(cdCliente: int):
     cursor = conn.cursor()
     try:
         cursor.execute("SELETC * FROM Cliente WHERE CdCliente = ?", str(cdCliente))
-        cursor.execute("DELETE * FROM Cliente WHERE CdCliente = {0}".format(cdCliente))
+        cursor.execute("DELETE FROM Cliente WHERE CdCliente = {}".format(cdCliente))
 
     except:
         return {'Ocorreu um erro': cdCliente}
@@ -281,7 +281,7 @@ def DeleteClientes(cdCliente: int):
         conn.commit()
 
     cursor.close()    
-    return {'Mensagem': 'Sucesso'}
+    return {'Mensagem': 'Cliente deletado com sucesso'}
     
 
 @app.delete('/DeleteEmpresas/{cdEmpresa}')
@@ -290,7 +290,7 @@ def DeleteClientes(cdEmpresa: int):
     cursor = conn.cursor()
     try:
         cursor.execute("SELETC * FROM Empresa WHERE CdEmpresa = ?", str(cdEmpresa))
-        cursor.execute("DELETE * FROM Empresa WHERE CdEmpresa = {0}".format(cdEmpresa))
+        cursor.execute("DELETE FROM Empresa WHERE CdEmpresa = {}".format(cdEmpresa))
 
     except:
         return {'Ocorreu um erro': cdEmpresa}
@@ -298,4 +298,4 @@ def DeleteClientes(cdEmpresa: int):
         conn.commit()
 
     cursor.close()    
-    return {'Mensagem': 'Sucesso'}    
+    return {'Mensagem': 'Empresa deletada com sucesso'}    
