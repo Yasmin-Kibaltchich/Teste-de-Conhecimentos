@@ -1,14 +1,12 @@
-import fastapi
+from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
-from flask import jsonify
 from datetime import datetime
 import sqlite3
 import dateparser as date_parser
-from itertools import cycle
 import re
 
 
-app = fastapi.FastAPI()
+app = FastAPI()
 
 
 class Cliente (BaseModel):
@@ -187,15 +185,18 @@ def UpdateVagas(cdVaga: int, info: Vaga):
     existe_pedido = cursor.fetchone()
     
     if not existe_pedido:
-        raise fastapi.HTTPException(status_code=404, detail='Vaga não encontrada')
+        raise FastAPI.HTTPException(status_code=404, detail='Vaga não encontrada')
     
-    dataconvertida = date_parser.parse(info.dataCadastro)
+
+    dataconvertida = info.dataCadastro
+
+    
 
     cursor.execute(""" 
                    UPDATE Vaga
                    SET CdVaga = ?, CdStatus = ?, DataCadastro = ?, UfVaga = ?, Salario = ? 
                    WHERE CdVaga = ?
-                   """, (info.cdVaga, info.cdStatus, info.dataconvertida, info.ufVaga, info.salario, cdVaga))
+                   """, (info.cdVaga, info.cdStatus, dataconvertida, info.ufVaga, info.salario, cdVaga))
 
     conn.commit()
     cursor.close()
@@ -211,15 +212,15 @@ def UpdateClientes(cdCliente: int, info: Cliente):
     existe_cliente = cursor.fetchone()
     
     if not existe_cliente:
-        raise fastapi.HTTPException(status_code=404, detail='Cliente não encontrado')
+        raise FastAPI.HTTPException(status_code=404, detail='Cliente não encontrado')
     
-    dataconvertida = date_parser.parse(info.dataCadastro)
+    dataconvertida = info.dataCadastro
 
     cursor.execute(""" 
                    UPDATE Cliente
                    SET CdCliente = ?, CdStatus = ?, Nome = ?, Telefone = ?, Cpf = ?, Endereco = ?, Email = ?, DataCadastro = ?
                    WHERE CdCliente = ?
-                   """, (info.cdCliente, info.cdStatus, info.nome, info.telefone, info.cpf, info.endereco, info.email, (dataconvertida, cdCliente))
+                   """, (info.cdCliente, info.cdStatus, info.nome, info.telefone, info.cpf, info.endereco, info.email, dataconvertida, cdCliente))
 
     conn.commit()
     cursor.close()
@@ -231,23 +232,27 @@ def UpdateEmpresas(cdEmpresa: int, info: Empresa):
     conn = sqlite3.connect('Vaga.db')
     cursor = conn.cursor()
 
-    cursor.execute("SELECT * FROM Empresa WHERE CdEmpresa = ?", (cdEmpresa))
+    
+    cursor.execute("SELECT * FROM Empresa WHERE CdEmpresa = ?", (cdEmpresa,))
     existe_empresa = cursor.fetchone()
     
     if not existe_empresa:
-        raise fastapi.HTTPException(status_code=404, detail='Empresa não encontrada')
-    
-    dataconvertida = date_parser.parse(info.dataCadastro)
+        raise FastAPI.HTTPException(status_code=404, detail='Empresa não encontrada')
 
+   
+    dataconvertida = info.dataCadastro
+
+  
     cursor.execute(""" 
                    UPDATE Empresa
                    SET CdEmpresa = ?, CdStatus = ?, Nome = ?, Endereco = ?, Telefone = ?, Cnpj = ?, DataCadastro = ?
                    WHERE CdEmpresa = ?
-                   """, (info.cdEmpresa, info.cdStatus, info.nome, info.endereco, info.telefone, info.cnpj, (dataconvertida, cdEmpresa))
+                   """, (info.cdEmpresa, info.cdStatus, info.nome, info.endereco, info.telefone, info.cnpj, dataconvertida, cdEmpresa))
 
     conn.commit()
     cursor.close()
-    return {'Mensagem': 'Cadastro atualizado com sucesso'}   
+    return {'Mensagem': 'Cadastro atualizado com sucesso'}
+ 
 
 
 @app.delete('/DeleteVagas/{cdVaga}')
@@ -255,7 +260,7 @@ def DeleteVagas(cdVaga: int):
     conn = sqlite3.connect('Vaga.db')
     cursor = conn.cursor()
     try:
-        cursor.execute("SELETC * FROM Vaga WHERE CdVaga = ?", str(cdVaga))
+        cursor.execute("SELECT * FROM Vaga WHERE CdVaga = ?", str(cdVaga))
         cursor.execute("DELETE FROM Vaga WHERE CdVaga = {}".format(cdVaga))
 
     except:
@@ -272,7 +277,7 @@ def DeleteClientes(cdCliente: int):
     conn = sqlite3.connect('Vaga.db')
     cursor = conn.cursor()
     try:
-        cursor.execute("SELETC * FROM Cliente WHERE CdCliente = ?", str(cdCliente))
+        cursor.execute("SELECT * FROM Cliente WHERE CdCliente = ?", str(cdCliente))
         cursor.execute("DELETE FROM Cliente WHERE CdCliente = {}".format(cdCliente))
 
     except:
@@ -289,7 +294,7 @@ def DeleteClientes(cdEmpresa: int):
     conn = sqlite3.connect('Vaga.db')
     cursor = conn.cursor()
     try:
-        cursor.execute("SELETC * FROM Empresa WHERE CdEmpresa = ?", str(cdEmpresa))
+        cursor.execute("SELECT * FROM Empresa WHERE CdEmpresa = ?",str(cdEmpresa))
         cursor.execute("DELETE FROM Empresa WHERE CdEmpresa = {}".format(cdEmpresa))
 
     except:
