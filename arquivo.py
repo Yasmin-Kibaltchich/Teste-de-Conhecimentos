@@ -68,6 +68,17 @@ print("CPF válido:", validate_cpf(cpf))
 print("CNPJ válido:", validate_cnpj(cnpj))
 
 
+@app.get("/")
+def BoasVindas():
+    conn = sqlite3.connect('Vaga.db')
+    cursor = conn.cursor()
+    sql = "SELECT * FROM Vaga"
+    response = cursor.execute(sql)
+    response.fetchall()
+    cursor.close()
+    print (response)
+    return {'Mensagem': 'Bem vindo a minha primeira API'}
+
 
 @app.get('/GetVagas')
 def GetVagas():
